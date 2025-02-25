@@ -61,25 +61,53 @@ export const getAllUserBoardApi = async (userId) => {
   
 
 
-  
-export const createListApi = async (boardId, title) => {
+  export const createListApi = async (boardId, title) => {
     try {
-        console.log(boardId,title);
       const res = await axios.post(`http://localhost:8080/list/createList/${boardId}`, {
-        title,  
+        title,
       });
   
-      if (res.status === 201) { 
+      if (res.status === 201) {
         showMessage("success", res.data.message || "List Created Successfully");
-        return res.data;
+        return { boardId, list: res.data.list }; 
       } else {
         throw new Error(res.data.message || "Unexpected error");
       }
     } catch (error) {
-        console.log(error);
       const errMsg = error.response?.data?.message || "Failed to create List";
       showMessage("error", errMsg);
       throw new Error(errMsg);
+    }
+  };
+  
+  export const deleteListApi = async (listId, boardId) => {
+    try {
+      const res = await axios.delete(`http://localhost:8080/list/deleteList/${listId}/board/${boardId}`);
+  
+      if (res.status === 200) {
+        showMessage("success", res.data.message || "List deleted Successfully");
+        return { boardId, listId }; 
+      } else {
+        throw new Error(res.data.message || "Unexpected error");
+      }
+    } catch (error) {
+      const errMsg = error.response?.data?.message || "Failed to delete List";
+      showMessage("error", errMsg);
+      throw new Error(errMsg);
+    }
+  };
+  
+  
+  export const getListByBoardApi = async (boardId) => {
+    try {
+      const res = await axios.get(`http://localhost:8080/list/getAllLists/${boardId}`);
+      if (res.status === 200) {
+        return { boardId, list: res.data };
+      } else {
+        throw new Error(res.data.message || "Unexpected error");
+      }
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Failed to load list");
     }
   };
   

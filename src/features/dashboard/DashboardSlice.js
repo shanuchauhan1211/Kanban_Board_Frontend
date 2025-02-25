@@ -1,13 +1,14 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { createBoardApi,deleteBoardApi, getAllUserBoardApi,createListApi } from "./DashboardApi";
+import { createBoardApi,deleteBoardApi, getAllUserBoardApi,createListApi, deleteListApi,getListByBoardApi } from "./DashboardApi";
 
 
 const initialState = {
   loading: false,
   boards: [],
   error: null,
-  lists:[]
+  lists: {} 
 };
+
 
 export const createBoardAsync = createAsyncThunk(
   "board/createBoard",
@@ -58,6 +59,34 @@ export const deleteBoardAsync = createAsyncThunk(
     }
   );
 
+  export const deleteListAsync = createAsyncThunk(
+    "list/deleteList",
+    async ({listId,boardId}, { rejectWithValue }) => {
+      
+      try {
+        const response = await deleteListApi(listId,boardId); 
+        return response;
+      } catch (error) {
+        return rejectWithValue(error.message);
+      }
+    }
+  );
+
+
+
+  export const getListByBoardAsync = createAsyncThunk(
+    "list/getList",
+    async (boardId, { rejectWithValue }) => {
+      try {
+        const response = await getListByBoardApi(boardId); 
+        console.log(response.list);
+        return response;
+      } catch (error) {
+        return rejectWithValue(error.message);
+      }
+    }
+  );
+
 
 
 
@@ -73,7 +102,7 @@ export const boardSlice = createSlice({
       })
       .addCase(createBoardAsync.fulfilled, (state, action) => {
         state.loading = false;
-        state.boards.push(action?.payload?.Board); 
+        state.boards?.push(action?.payload?.Board); 
       })
       .addCase(createBoardAsync.rejected, (state, action) => {
         state.loading = false;
@@ -109,9 +138,44 @@ export const boardSlice = createSlice({
       })
       .addCase(createListAsync.fulfilled, (state, action) => {
         state.loading = false;
-        state.lists.push(action?.payload?.list);  
+        const { boardId, list } = action.payload;
+        if (!state.lists[boardId]) {
+          state.lists[boardId] = [];
+        }
+        state.lists[boardId].push(list);  
       })
+      
       .addCase(createListAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(deleteListAsync.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteListAsync.fulfilled, (state, action) => {
+        state.loading = false;
+        const { boardId, listId } = action.payload;
+        if (state.lists[boardId]) {
+          state.lists[boardId] = state.lists[boardId].filter((list) => list._id !== listId);
+        }
+      })
+      
+      .addCase(deleteListAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(getListByBoardAsync.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getListByBoardAsync.fulfilled, (state, action) => {
+        state.loading = false;
+        const { boardId, list } = action.payload; 
+        state.lists[boardId] = list; 
+      })
+      
+      .addCase(getListByBoardAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
