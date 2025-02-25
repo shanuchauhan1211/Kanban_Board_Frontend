@@ -5,7 +5,7 @@ import { showMessage } from "../../utils/ShowToast";
 export const createBoardApi = async (userId, title) => {
     try {
         console.log(userId,title);
-      const res = await axios.post(`http://localhost:8080/board/createBoard/${userId}`, {
+      const res = await axios.post(`https://kanban-board-backend-1.onrender.com/board/createBoard/${userId}`, {
         title,  
       });
   
@@ -26,7 +26,7 @@ export const createBoardApi = async (userId, title) => {
 
 export const deleteBoardApi = async (boardId) => {
   try {
-    const res = await axios.delete(`http://localhost:8080/board/deleteBoard/${boardId}`); 
+    const res = await axios.delete(`https://kanban-board-backend-1.onrender.com/board/deleteBoard/${boardId}`); 
 
     if (res.status === 200) {
       showMessage("success", res.data.message || "Board deleted Successfully");
@@ -44,7 +44,7 @@ export const deleteBoardApi = async (boardId) => {
 
 export const getAllUserBoardApi = async (userId) => {
     try {
-      const res = await axios.get(`http://localhost:8080/board/getBoard/${userId}`); 
+      const res = await axios.get(`https://kanban-board-backend-1.onrender.com/board/getBoard/${userId}`); 
   
       if (res.status === 200) {
         showMessage("success", res.data.message );
@@ -63,7 +63,7 @@ export const getAllUserBoardApi = async (userId) => {
 
   export const createListApi = async (boardId, title) => {
     try {
-      const res = await axios.post(`http://localhost:8080/list/createList/${boardId}`, {
+      const res = await axios.post(`https://kanban-board-backend-1.onrender.com/list/createList/${boardId}`, {
         title,
       });
   
@@ -82,7 +82,7 @@ export const getAllUserBoardApi = async (userId) => {
   
   export const deleteListApi = async (listId, boardId) => {
     try {
-      const res = await axios.delete(`http://localhost:8080/list/deleteList/${listId}/board/${boardId}`);
+      const res = await axios.delete(`https://kanban-board-backend-1.onrender.com/list/deleteList/${listId}/board/${boardId}`);
   
       if (res.status === 200) {
         showMessage("success", res.data.message || "List deleted Successfully");
@@ -100,7 +100,7 @@ export const getAllUserBoardApi = async (userId) => {
   
   export const getListByBoardApi = async (boardId) => {
     try {
-      const res = await axios.get(`http://localhost:8080/list/getAllLists/${boardId}`);
+      const res = await axios.get(`https://kanban-board-backend-1.onrender.com/list/getAllLists/${boardId}`);
       if (res.status === 200) {
         return { boardId, list: res.data };
       } else {

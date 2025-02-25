@@ -3,7 +3,7 @@ import { showMessage } from "../utils/ShowToast";
 
 export const SignupApi = async (details) => {
   try {
-    const res = await axios.post(`http://localhost:8080/auth/register`, details);
+    const res = await axios.post(`https://kanban-board-backend-1.onrender.com/auth/register`, details);
 
     if (res.status === 201) { // Change 200 → 201 (correct for user creation)
       showMessage("success", res.data.message || "Signup Successful");
@@ -20,7 +20,7 @@ export const SignupApi = async (details) => {
 
 export const logInApi = async (data) => {
   try {
-    const res = await axios.post(`http://localhost:8080/auth/login`, data); 
+    const res = await axios.post(`https://kanban-board-backend-1.onrender.com/auth/login`, data); 
 
     if (res.status === 200) {
       showMessage("success", res.data.message || "Sign in Successful");
