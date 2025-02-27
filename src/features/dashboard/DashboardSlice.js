@@ -1,12 +1,13 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { createBoardApi,deleteBoardApi, getAllUserBoardApi,createListApi, deleteListApi,getListByBoardApi } from "./DashboardApi";
+import { createBoardApi,deleteBoardApi, getAllUserBoardApi,createListApi, deleteListApi,getListByBoardApi, createTaskApi, updateTaskApi } from "./DashboardApi";
 
 
 const initialState = {
   loading: false,
   boards: [],
   error: null,
-  lists: {} 
+  lists: {} ,
+  tasks:{}
 };
 
 
@@ -73,6 +74,18 @@ export const deleteBoardAsync = createAsyncThunk(
   );
 
 
+  export const createTaskAsync = createAsyncThunk(
+    "task/createTask",
+    async ({ listId, title }, { rejectWithValue }) => {
+      try {
+        const response = await createTaskApi( listId, title); 
+        console.log(response)
+        return response;
+      } catch (error) {
+        return rejectWithValue(error.message);
+      }
+    }
+  );
 
   export const getListByBoardAsync = createAsyncThunk(
     "list/getList",
@@ -87,6 +100,32 @@ export const deleteBoardAsync = createAsyncThunk(
     }
   );
 
+
+  export const updateTaskAsync = createAsyncThunk(
+    "task/updateTask",
+    async ({ taskId, priority }, { rejectWithValue }) => {
+      try {
+        const response = await updateTaskApi( taskId, priority); 
+        console.log(response)
+        return response;
+      } catch (error) {
+        return rejectWithValue(error.message);
+      }
+    }
+  );
+
+  export const deleteTaskAsync = createAsyncThunk(
+    "task/deleteTask",
+    async ({listId,taskId}, { rejectWithValue }) => {
+      
+      try {
+        const response = await deleteListApi(listId,taskId); 
+        return response;
+      } catch (error) {
+        return rejectWithValue(error.message);
+      }
+    }
+  );
 
 
 
@@ -176,6 +215,59 @@ export const boardSlice = createSlice({
       })
       
       .addCase(getListByBoardAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(createTaskAsync.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createTaskAsync.fulfilled, (state, action) => {
+        state.loading = false;
+        const { listId, task } = action.payload;
+        if (!state.tasks[listId]) {
+          state.tasks[listId] = [];
+        }
+        state.tasks[listId].push(task);  
+      })
+      .addCase(createTaskAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateTaskAsync.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateTaskAsync.fulfilled, (state, action) => {
+        state.loading = false;
+        const { taskId, updatedTask } = action.payload;
+
+        
+        for (const listId in state.tasks) {
+          const taskIndex = state.tasks[listId].findIndex((task) => task._id === taskId);
+          if (taskIndex !== -1) {
+            state.tasks[listId][taskIndex] = updatedTask;
+            break;
+          }
+        }
+      })
+      .addCase(updateTaskAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(deleteTaskAsync.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteTaskAsync.fulfilled, (state, action) => {
+        state.loading = false;
+        const { taskId, listId } = action.payload;
+        if (state.tasks[listId]) {
+          state.tasks[listId] = state.tasks[listId].filter((task) => task._id !== taskId);
+        }
+      })
+      
+      .addCase(deleteTaskAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

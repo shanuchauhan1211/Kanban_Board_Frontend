@@ -6,7 +6,11 @@ import {
   deleteBoardAsync, 
   deleteListAsync, 
   getAllBoardAsync, 
-  getListByBoardAsync 
+  getListByBoardAsync, 
+  createTaskAsync,
+  updateTaskAsync,
+  deleteTaskAsync, 
+ 
 } from "../features/dashboard/DashboardSlice";
 import { logout } from "../features/AuthSlice";
 import { useNavigate } from "react-router-dom";
@@ -16,8 +20,8 @@ export default function Dashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { boards, lists } = useSelector((state) => state.board); 
-
+  const { boards, lists, tasks } = useSelector((state) => state.board); 
+console.log(tasks)
   const userId = user?._id;
 
   useEffect(() => {
@@ -26,29 +30,23 @@ export default function Dashboard() {
     }
   }, [dispatch, userId]);
 
-
   useEffect(() => {
     if (boards.length > 0) {
-      const fetchLists = async () => {
-        for (const board of boards) {
-          try {
-            const response = await dispatch(getListByBoardAsync(board._id)).unwrap();
-            console.log("Fetched lists for board:", board._id, response);
-          } catch (error) {
-            console.error("Error fetching lists for board:", board._id, error);
-          }
-        }
-      };
-  
-      fetchLists();
+      boards.forEach((board) => dispatch(getListByBoardAsync(board._id)));
     }
   }, [dispatch, boards]);
-  
+
+  // useEffect(() => {
+  //   if (lists) {
+  //     Object.values(lists).forEach((listArray) => {
+  //       listArray.forEach((list) => dispatch(getTasksByListAsync(list._id)));
+  //     });
+  //   }
+  // }, [dispatch, lists]);
 
   const createBoard = async () => {
     if (!userId) return;
-    const newBoard = { title: `Board ${boards.length + 1}`, userId };
-    await dispatch(createBoardAsync(newBoard)).unwrap();
+    await dispatch(createBoardAsync({ title: `Board ${boards.length + 1}`, userId })).unwrap();
   };
 
   const deleteBoard = async (boardId) => {
@@ -60,10 +58,22 @@ export default function Dashboard() {
   };
 
   const createList = async (boardId) => {
-    const newList = { title: `List ${lists[boardId]?.length + 1 || 1}`, boardId };
-    await dispatch(createListAsync(newList)).unwrap();
+    await dispatch(createListAsync({ title: `List ${lists[boardId]?.length + 1 || 1}`, boardId })).unwrap();
   };
-  
+
+  const createTask = async (listId) => {
+    await dispatch(createTaskAsync({ title: `Task ${tasks[listId]?.length + 1 || 1}`, listId })).unwrap();
+  };
+
+  const deleteTask = async (taskId, listId) => {
+    await dispatch(deleteTaskAsync({ taskId, listId })).unwrap();
+  };
+
+  const handlePriorityChange = async (taskId, priority) => {
+    await dispatch(updateTaskAsync({ taskId, priority })).unwrap();
+  };
+
+
   return (
     <div className="p-5 bg-gradient-to-r from-blue-500 to-purple-600 min-h-screen flex flex-col items-center">
       <nav className="flex items-center justify-between w-full p-4 bg-gray-800 bg-opacity-70 rounded-lg text-white">
@@ -94,35 +104,54 @@ export default function Dashboard() {
       ) : (
         <div className="mt-5 flex flex-wrap gap-5">
         {boards.map((board) => (
-  <div key={board._id} className="bg-gray-800 text-white p-4 rounded-lg">
-    <h2 className="text-xl font-bold">{board.title}</h2>
+          <div key={board._id} className="bg-gray-800 text-white p-4 rounded-lg">
+            <h2 className="text-xl font-bold">{board.title}</h2>
 
-    <button className="bg-red-500 px-2 py-1 text-sm rounded mt-2" onClick={() => deleteBoard(board._id)}>
-      Delete Board
-    </button>
+            <button className="bg-red-500 px-2 py-1 text-sm rounded mt-2" onClick={() => deleteBoard(board._id)}>
+              Delete Board
+            </button>
 
-    <button className="bg-green-500 px-2 py-1 text-sm rounded mt-2 ml-2" onClick={() => createList(board._id)}>
-      Add List
-    </button>
+            <button className="bg-green-500 px-2 py-1 text-sm rounded mt-2 ml-2" onClick={() => createList(board._id)}>
+              Add List
+            </button>
 
-    <div className="flex flex-row gap-3 mt-4 w-full">
-      {lists[board._id]?.map((list) => ( 
-        <div key={list._id} className="bg-gray-700 p-3 rounded-lg w-72 flex-shrink-0">
-          <h3 className="text-lg font-bold">{list.title}</h3>
+            <div className="flex flex-row gap-3 mt-4 w-full">
+              {lists[board._id]?.map((list) => ( 
+                <div key={list._id} className="bg-gray-700 p-3 rounded-lg w-72 flex-shrink-0">
+                  <h3 className="text-lg font-bold">{list.title}</h3>
 
-          <button onClick={() => deleteList(list._id, board._id)} className="bg-red-400 px-2 py-1 text-sm rounded mt-1">
-            Delete List
-          </button>
+                  <button onClick={() => deleteList(list._id, board._id)} className="bg-red-400 px-2 py-1 text-sm rounded mt-1">
+                    Delete List
+                  </button>
 
-          <button className="bg-green-400 px-2 py-1 text-sm rounded mt-1 ml-2">
-            Add Task
-          </button>
-        </div>
-      ))}
-    </div>
-  </div>
-))}
+                  <button className="bg-green-400 px-2 py-1 text-sm rounded mt-1 ml-2" onClick={() => createTask(list._id)}>
+                    Add Task
+                  </button>
 
+                  <div className="mt-2">
+                    {tasks[list._id]?.map((task) => (
+                      <div key={task?._id} className="bg-gray-600 p-2 rounded-lg mt-1">
+                        <p className="text-white">{task?.title}</p>
+                        <button className="bg-red-400 px-2 py-1 text-sm rounded mt-1" onClick={() => deleteTask(task?._id, list?._id)}>
+                          Delete Task
+                        </button>
+                        <select
+                          className="bg-gray-500 text-white px-2 py-1 rounded ml-2"
+                          value={task?.priority || "Medium"}
+                          onChange={(e) => handlePriorityChange(task?._id, list?._id, e.target.value)}
+                        >
+                          <option value="Low">Low</option>
+                          <option value="Medium">Medium</option>
+                          <option value="High">High</option>
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
         </div>
       )}
     </div>

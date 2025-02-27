@@ -111,3 +111,59 @@ export const getAllUserBoardApi = async (userId) => {
     }
   };
   
+
+  export const createTaskApi = async (listId, title) => {
+    try {
+      const res = await axios.post(`https://kanban-board-backend-1.onrender.com/task/createTask/${listId}`, {
+        title,
+      });
+  
+      if (res.status === 201) {
+        showMessage("success", res.data.message || "Task Created Successfully");
+        return { listId, task: res.data.task }; 
+      } else {
+        throw new Error(res.data.message || "Unexpected error");
+      }
+    } catch (error) {
+      const errMsg = error.response?.data?.message || "Failed to create Task";
+      showMessage("error", errMsg);
+      throw new Error(errMsg);
+    }
+  };
+
+  export const updateTaskApi = async (taskId, priority) => {
+    try {
+      const res = await axios.put(`https://kanban-board-backend-1.onrender.com/task/updateTask/${taskId}`, {
+        priority,
+      });
+  
+      if (res.status === 201) {
+        showMessage("success", res.data.message || "Task updated Successfully");
+        return {taskId , task: res.data.task }; 
+      } else {
+        throw new Error(res.data.message || "Unexpected error");
+      }
+    } catch (error) {
+      const errMsg = error.response?.data?.message || "Failed to update Task";
+      showMessage("error", errMsg);
+      throw new Error(errMsg);
+    }
+  };
+
+
+  export const deleteTaskApi = async (listId, taskId) => {
+    try {
+      const res = await axios.delete(`https://kanban-board-backend-1.onrender.com/task/deleteTask/${taskId}`);
+  
+      if (res.status === 200) {
+        showMessage("success", res.data.message || "List deleted Successfully");
+        return { taskId, listId }; 
+      } else {
+        throw new Error(res.data.message || "Unexpected error");
+      }
+    } catch (error) {
+      const errMsg = error.response?.data?.message || "Failed to delete List";
+      showMessage("error", errMsg);
+      throw new Error(errMsg);
+    }
+  };
